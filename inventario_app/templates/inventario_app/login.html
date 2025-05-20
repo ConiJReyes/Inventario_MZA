@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Iniciar Sesión</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #cdd0c4;
+      color: #222;
+
+      /* Fondo de pantalla */
+      background-image: url('https://image.jimcdn.com/app/cms/image/transf/dimension=940x10000:format=jpg/path/s311608c358b15ce1/image/i7ef0f32a213f38ca/version/1462023946/image.jpg'); /* Cambia la URL a tu imagen */
+      background-size: cover; 
+      background-position: center; 
+      height: 100vh; 
+    }
+
+    nav {
+      display: flex;
+      justify-content: flex-end;
+      padding: 20px;
+      gap: 40px;
+      font-weight: bold;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px;
+      border: 1px solid #444;
+      background-color: rgba(255, 255, 255, 0.8); 
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    .form-container h2 {
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Iniciar Sesión</h2>
+    <form method="POST" novalidate>
+      {% csrf_token %}
+      <input type="text" name="correo" placeholder="USUARIO" required autofocus>
+      <input type="password" name="contrasena" placeholder="CONTRASEÑA" required>
+      <button type="submit">INICIAR SESIÓN</button>
+    </form>
+    {% if error %}
+      <p class="error-message">{{ error }}</p>
+    {% endif %}
+  </div>
+</body>
+</html>

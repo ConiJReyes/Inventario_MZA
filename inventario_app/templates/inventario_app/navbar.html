@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Mi Proyecto{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #cdd0c4;
+      color: #222;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      gap: 40px;
+      font-weight: bold;
+      background-color: #a3b8a7; /* verde suave */
+    }
+    nav a {
+      text-decoration: none;
+      color: #111;
+      transition: color 0.3s ease;
+    }
+    nav a:hover {
+      color: #f7931e; /* naranja al pasar el mouse */
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: transparent;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<nav>
+
+  {% if user.is_authenticated %}
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+
+    {% if user.is_staff %}
+      <a href="{% url 'configuracion' %}">Configuración</a>
+      <a href="{% url 'registro' %}">Crear Cuenta</a>  <!-- Solo admin podrá ver este enlace -->
+    {% endif %}
+
+
+  {% else %}
+    <a href="{% url 'login' %}">Iniciar Sesión</a>
+  {% endif %}
+</nav>
+
+
+  <div class="container">
+    {% block content %}
+    {% endblock %}
+  </div>
+</body>
+</html>
