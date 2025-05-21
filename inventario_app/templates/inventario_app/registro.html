@@ -58,7 +58,18 @@
       <input type="text" name="correo" placeholder="CORREO" required>
       <input type="password" name="contrasena" placeholder="CONTRASEÑA" required>
       <input type="password" name="confirmar" placeholder="CONFIRMAR CONTRASEÑA" required>
-      <button type="submit">CREAR CUENTA</button>
+      <form method="POST">
+  {% csrf_token %}
+
+  <label for="rol">Selecciona un rol:</label>
+  <select name="rol" id="rol" required>
+    <option value="" disabled selected>-- Selecciona un rol --</option>
+    <option value="Administrador">Administrador</option>
+    <option value="Operario">Operario</option>
+  </select>
+
+  <button type="submit">Crear cuenta</button>
+</form>
     </form>
     {% if error %}
       <p style="color:red;">{{ error }}</p>
