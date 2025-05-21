@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movimientos Registrados</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #cdd0c4;
+      color: #222;
+    }
+
+    nav {
+      display: flex;
+      justify-content: flex-end;
+      padding: 20px;
+      gap: 40px;
+      font-weight: bold;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px;
+      border: 1px solid #444;
+      background-color: rgba(255, 255, 255, 0.8); 
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    .form-container h2 {
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 40px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .button {
+      padding: 12px 24px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background-color: #d76f0a;
+    }
+
+    .dashboard-cards {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .dashboard-card {
+      display: inline-block;
+      width: 48%;
+      padding: 20px;
+      background-color: #eae3dd;
+      border: 1px solid #444;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .dashboard-card h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+      color: #3b4a3f;
+    }
+    .dashboard-cards {
+  display: flex;
+  justify-content: space-between; /* Espacio entre las tarjetas */
+  gap: 20px; /* Espacio entre las tarjetas */
+  flex-wrap: wrap; /* Permite que las tarjetas se ajusten si la pantalla es pequeña */
+}
+
+.dashboard-card {
+  flex: 1 1 calc(50% - 20px); /* Las tarjetas ocupan el 50% del espacio disponible, con margen */
+  padding: 20px;
+  background-color: #eae3dd;
+  border: 1px solid #444;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-10px);
+}
+
+@media screen and (max-width: 768px) {
+  .dashboard-card {
+    flex: 1 1 100%; /* En pantallas más pequeñas, las tarjetas ocuparán el 100% del ancho */
+  }}
+  
+  </style>
+</head>
+<body>
+
+{% include "inventario_app/navbar.html" %}
+
+<div class="container">
+  <h1>Movimientos de Inventario</h1>
+
+  <!-- Tarjetas para registrar movimiento y ver movimientos -->
+  <div class="dashboard-cards">
+    <div class="dashboard-card">
+      <h3>Movimientos Registrados</h3>
+      <p>Total de movimientos: {{ movimientos_count }}</p>
+      <a href="#tabla" class="button">Ver Movimientos</a>
+    </div>
+  </div>
+
+  <!-- Formulario para registrar un nuevo movimiento -->
+  <div id="formulario" class="form-container">
+    <h2>Registrar Movimiento</h2>
+    
+    <!-- Mostrar error si no hay suficiente stock -->
+    {% if error %}
+      <div style="color: red; margin-bottom: 20px;">
+        <strong>{{ error }}</strong>
+      </div>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <label for="producto">Producto</label>
+      <select name="producto" id="producto" required>
+        {% for producto in productos %}
+        <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="tipo_movimiento">Tipo de Movimiento</label>
+      <select name="tipo_movimiento" id="tipo_movimiento" required>
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+      </select>
+
+      <label for="cantidad">Cantidad</label>
+      <input type="number" name="cantidad" id="cantidad" required>
+
+      <button type="submit" class="button">Guardar Movimiento</button>
+    </form>
+  </div>
+
+  <!-- Tabla de movimientos registrados -->
+  <div id="tabla" class="container">
+    <h2>Movimientos Recientes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Tipo de Movimiento</th>
+          <th>Cantidad</th>
+          <th>Fecha</th>
+          <th>Usuario</th> <!-- Nueva columna para mostrar el usuario -->
+        </tr>
+      </thead>
+      <tbody>
+        {% for movimiento in movimientos %}
+        <tr>
+          <td>{{ movimiento.producto.nombre }}</td>
+          <td>{{ movimiento.tipo_movimiento }}</td>
+          <td>{{ movimiento.cantidad }}</td>
+          <td>{{ movimiento.fecha }}</td>
+          <td>{{ movimiento.usuario.get_full_name }}</td> <!-- Mostrar el nombre del usuario -->
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center; padding: 20px; color: #666;">
+            No hay movimientos registrados.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

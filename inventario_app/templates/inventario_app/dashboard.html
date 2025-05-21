@@ -136,8 +136,8 @@
 
             <div class="dashboard-card">
                 <h3>Movimientos</h3>
-                <p>Entradas y salidas registradas: 120</p>
-                <a href="" class="button">Ver Movimientos</a>
+                <p>Entradas y salidas registradas:{{ movimientos_count }}</p>
+                <a href="{% url 'movimientos' %}" class="button">Ver Movimientos</a>
             </div>
 
             <div class="dashboard-card">
@@ -146,11 +146,13 @@
                 <a href="" class="button">Ver Reportes</a>
             </div>
 
+            {% if user.is_staff %}
             <div class="dashboard-card">
                 <h3>Usuarios</h3>
                 <p>Usuarios registrados: 50</p>
                 <a href="{% url 'configuracion' %}" class="button">Gestionar Usuarios</a>
             </div>
+            {% endif %}
         </div>
 
     </div>

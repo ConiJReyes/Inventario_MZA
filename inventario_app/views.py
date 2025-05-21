@@ -4,8 +4,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
+from .models import Movimiento, Producto  
+from django.contrib.auth import logout
 
-from inventario_app.models import Producto
 
 def home(request):
     return render(request, 'inventario_app/home.html')
@@ -14,15 +15,21 @@ def login_view(request):
     if request.method == 'POST':
         correo = request.POST['correo']
         contrasena = request.POST['contrasena']
+        
+        # Intentar autenticar al usuario con el correo como username
         user = authenticate(request, username=correo, password=contrasena)
+        
         if user is not None:
-            login(request, user)
-            return redirect('dashboard')
+            login(request, user)  # Iniciar sesión para el usuario
+            return redirect('dashboard')  # Redirige al dashboard después de un login exitoso
         else:
-            return render(request, 'inventario_app/login.html', {'error': 'Credenciales incorrectas'})
-    return render(request, 'inventario_app/login.html')
+            return render(request, 'inventario_app/login.html', {'error': 'Credenciales incorrectas'})  # Mostrar error si no se puede autenticar
 
+    return render(request, 'inventario_app/login.html')  # Mostrar la página de login en GET
 
+def logout_view(request):
+    logout(request)  # Cierra la sesión del usuario
+    return redirect('login')  # Redirige a la página de login después de cerrar sesión
 
 @staff_member_required
 def registro_view(request):
@@ -56,17 +63,8 @@ def dashboard(request):
     return render(request, 'inventario_app/dashboard.html')
 
 
-@login_required
-def configuracion(request):
-    # Lógica para la vista de configuración
-    return render(request, 'inventario_app/configuracion.html')
-
-
 
 #PARA EL CRUD DE LOS PRODUCTOS
-
-
-
 #VISTA PARA LISTAR LOS PRODUCTOS
 @login_required
 def productos_inventario(request):
@@ -117,8 +115,6 @@ def configuracion(request):
                 'usuarios': User.objects.all(),
             })
 
-        # Asignar roles (grupos) al usuario
-        # Recibe los grupos seleccionados
         usuario.groups.set(rol)
         usuario.save()
 
@@ -130,3 +126,46 @@ def eliminar_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     usuario.delete()
     return redirect('configuracion')
+
+
+#MOVIMIENTOS
+@login_required
+def movimientos(request):
+    if request.method == 'POST':
+        producto_id = request.POST.get('producto')
+        tipo_movimiento = request.POST.get('tipo_movimiento')
+        cantidad = int(request.POST.get('cantidad'))  # Convertir a entero
+
+        producto = Producto.objects.get(id=producto_id)
+        
+        if tipo_movimiento == 'entrada':
+            producto.stock += cantidad  # Agregar al stock
+        elif tipo_movimiento == 'salida':
+            if producto.stock >= cantidad:  # Verificar que haya suficiente stock
+                producto.stock -= cantidad  # Restar del stock
+            else:
+                return render(request, 'inventario_app/movimientos.html', {
+                    'error': 'No hay suficiente stock para la salida',
+                    'productos': Producto.objects.all()
+                })
+
+        producto.save()
+
+        # Crear el registro del movimiento
+        Movimiento.objects.create(
+            producto=producto,
+            tipo_movimiento=tipo_movimiento,
+            cantidad=cantidad,
+            usuario=request.user  # Guardar el usuario que realizó el movimiento
+        )
+
+        return redirect('movimientos')  # Redirige a la misma página para ver los movimientos
+
+    movimientos = Movimiento.objects.all().order_by('-fecha')
+    productos = Producto.objects.all()  # Para mostrar los productos en el formulario
+    return render(request, 'inventario_app/movimientos.html', {
+        'movimientos': movimientos,
+        'movimientos_count': movimientos.count(),
+        'productos': productos
+    })
+

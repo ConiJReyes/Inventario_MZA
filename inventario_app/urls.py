@@ -7,6 +7,10 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('configuracion/', views.configuracion, name='configuracion'),
     path('configuracion/eliminar/<int:pk>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('logout/', views.logout_view, name='logout'),  # Ruta para cerrar sesión
+
+    path('movimientos/', views.movimientos, name='movimientos'),
+
 
     path('productos-inventario/', views.productos_inventario, name='productos_inventario'),  # Listar
     path('productos-inventario/editar/<int:pk>/', views.editar_producto_separado, name='editar_producto_separado'),  # Editar separado

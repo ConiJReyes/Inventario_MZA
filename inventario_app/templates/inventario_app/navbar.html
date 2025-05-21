@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <title>{% block title %}Mi Proyecto{% endblock %}</title>
@@ -11,22 +12,28 @@
       background-color: #cdd0c4;
       color: #222;
     }
+
     nav {
       display: flex;
       justify-content: center;
       padding: 20px;
       gap: 40px;
       font-weight: bold;
-      background-color: #a3b8a7; /* verde suave */
+      background-color: #a3b8a7;
+      /* verde suave */
     }
+
     nav a {
       text-decoration: none;
       color: #111;
       transition: color 0.3s ease;
     }
+
     nav a:hover {
-      color: #f7931e; /* naranja al pasar el mouse */
+      color: #f7931e;
+      /* naranja al pasar el mouse */
     }
+
     .container {
       max-width: 800px;
       margin: 40px auto;
@@ -34,24 +41,37 @@
       background-color: transparent;
       text-align: center;
     }
+
+    nav .logo img {
+      height: 50px;
+      /* Ajusta la altura según tus necesidades */
+      margin-right: 20px;
+      /* Espacio entre el logo y los enlaces */
+    }
   </style>
 </head>
+
 <body>
-<nav>
+  <nav>
 
-  {% if user.is_authenticated %}
-    <a href="{% url 'dashboard' %}">Dashboard</a>
-
+    <!-- especificas para el admin -->
     {% if user.is_staff %}
-      <a href="{% url 'configuracion' %}">Configuración</a>
-      <a href="{% url 'registro' %}">Crear Cuenta</a>  <!-- Solo admin podrá ver este enlace -->
+    <a href="{% url 'configuracion' %}">Configuración</a>
     {% endif %}
+    <!-- la ven usuarios normales como operarios-->
+    {% if user.is_authenticated %}
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <a href="{% url 'productos_inventario' %}">Inventario</a>
+    <a href="{% url 'movimientos' %}">Movimientos</a>
+    <a href="{% url 'logout' %}">Cerrar sesión</a> <!-- Enlace de logout -->
 
 
-  {% else %}
+
+
+    {% else %}
     <a href="{% url 'login' %}">Iniciar Sesión</a>
-  {% endif %}
-</nav>
+    {% endif %}
+  </nav>
 
 
   <div class="container">
@@ -59,4 +79,5 @@
     {% endblock %}
   </div>
 </body>
+
 </html>
