@@ -1,3 +1,5 @@
+from docx import Document
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -16,20 +18,19 @@ def login_view(request):
         correo = request.POST['correo']
         contrasena = request.POST['contrasena']
         
-        # Intentar autenticar al usuario con el correo como username
         user = authenticate(request, username=correo, password=contrasena)
         
         if user is not None:
-            login(request, user)  # Iniciar sesión para el usuario
-            return redirect('dashboard')  # Redirige al dashboard después de un login exitoso
+            login(request, user)  
+            return redirect('dashboard')  
         else:
-            return render(request, 'inventario_app/login.html', {'error': 'Credenciales incorrectas'})  # Mostrar error si no se puede autenticar
+            return render(request, 'inventario_app/login.html', {'error': 'Credenciales incorrectas'}) 
 
-    return render(request, 'inventario_app/login.html')  # Mostrar la página de login en GET
+    return render(request, 'inventario_app/login.html')  
 
 def logout_view(request):
-    logout(request)  # Cierra la sesión del usuario
-    return redirect('login')  # Redirige a la página de login después de cerrar sesión
+    logout(request)  
+    return redirect('login')  
 
 @staff_member_required
 def registro_view(request):
@@ -38,7 +39,7 @@ def registro_view(request):
         correo = request.POST.get('correo')
         contrasena = request.POST.get('contrasena')
         confirmar = request.POST.get('confirmar')
-        rol = request.POST.get('rol')  # Captura el rol enviado desde el formulario
+        rol = request.POST.get('rol')  
 
         if contrasena != confirmar:
             return render(request, 'inventario_app/registro.html', {'error': 'Las contraseñas no coinciden'})
@@ -48,7 +49,7 @@ def registro_view(request):
 
         usuario = User.objects.create_user(username=correo, email=correo, password=contrasena, first_name=nombre)
 
-        # Asignar grupo según rol seleccionado
+        
         if rol:
             grupo = Group.objects.filter(name=rol).first()
             if grupo:
@@ -103,10 +104,10 @@ def eliminar_producto(request, pk):
 @login_required
 def configuracion(request):
     if request.method == 'POST':
-        # Captura el usuario
+
         user_id = request.POST.get('user_id')
         usuario = get_object_or_404(User, pk=user_id)
-        rol = request.POST.get('roles')  # Captura los roles enviados
+        rol = request.POST.get('roles')  
         
         # Lógica para prevenir que el administrador cambie su rol
         if 'Administrador' in rol and 'Administrador' not in [grupo.name for grupo in usuario.groups.all()]:
@@ -114,7 +115,6 @@ def configuracion(request):
                 'error': 'No puedes asignar el rol de Administrador.',
                 'usuarios': User.objects.all(),
             })
-
         usuario.groups.set(rol)
         usuario.save()
 
@@ -169,3 +169,99 @@ def movimientos(request):
         'productos': productos
     })
 
+
+#REPORTES 
+
+
+@login_required
+def reportes_view(request):
+    # Obtener los movimientos registrados
+    movimientos = Movimiento.objects.all().order_by('-fecha')
+    
+    # También puedes agregar las ventas cuando se implementen
+    # ventas = Venta.objects.all()  # Asegúrate de tener un modelo de ventas cuando lo implementes
+
+    return render(request, 'inventario_app/reportes.html', {
+        'movimientos': movimientos,
+        'movimientos_count': movimientos.count(),
+        # 'ventas': ventas,  # Incluye las ventas cuando las implementes
+    })
+
+
+#REPORTES
+@login_required
+def reportes_view(request):
+    # Obtener todos los movimientos registrados
+    movimientos = Movimiento.objects.all().order_by('-fecha')
+
+    # Contar el total de movimientos
+    movimientos_count = movimientos.count()
+
+    return render(request, 'inventario_app/reportes.html', {
+        'movimientos': movimientos,
+        'movimientos_count': movimientos_count,
+    })
+
+# Generar el reporte en Word
+@login_required
+def generar_reporte_word(request):
+    # Obtener todos los movimientos
+    movimientos = Movimiento.objects.all()
+
+    # Crear un nuevo documento Word
+    doc = Document()
+
+    # Agregar un título
+    doc.add_heading('Reporte de Movimientos de Inventario', 0)
+
+    # Crear la tabla con los movimientos
+    table = doc.add_table(rows=1, cols=4)
+    table.style = 'Table Grid'
+
+    # Encabezados de la tabla
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'Producto'
+    hdr_cells[1].text = 'Tipo de Movimiento'
+    hdr_cells[2].text = 'Cantidad'
+    hdr_cells[3].text = 'Fecha'
+
+    # Llenar la tabla con los movimientos
+    for movimiento in movimientos:
+        row_cells = table.add_row().cells
+        row_cells[0].text = movimiento.producto.nombre
+        row_cells[1].text = movimiento.tipo_movimiento
+        row_cells[2].text = str(movimiento.cantidad)
+        row_cells[3].text = str(movimiento.fecha)
+
+    # Crear la respuesta HTTP con el archivo Word
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = 'attachment; filename="movimientos.docx"'
+
+    # Guardar el archivo Word en la respuesta HTTP
+    doc.save(response)
+    return response
+
+
+
+#REGISTRAR PRODUCTOS
+@login_required
+def registrar_producto(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+        stock = request.POST.get('stock')
+        precio = request.POST.get('precio')
+        imagen = request.FILES.get('imagen')  # Obtiene la imagen si es que se sube
+
+        # Crear el nuevo producto
+        Producto.objects.create(
+            nombre=nombre,
+            descripcion=descripcion,
+            stock=stock,
+            precio=precio,
+            imagen=imagen
+        )
+
+        return redirect('productos_inventario')  # Redirige a la lista de productos después de crear
+
+    return render(request, 'inventario_app/registrar_producto.html')  # Muestra el formulario para agregar un nuevo producto

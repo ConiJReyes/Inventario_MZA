@@ -7,12 +7,12 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('configuracion/', views.configuracion, name='configuracion'),
     path('configuracion/eliminar/<int:pk>/', views.eliminar_usuario, name='eliminar_usuario'),
-    path('logout/', views.logout_view, name='logout'),  # Ruta para cerrar sesión
-
+    path('logout/', views.logout_view, name='logout'), 
     path('movimientos/', views.movimientos, name='movimientos'),
-
-
-    path('productos-inventario/', views.productos_inventario, name='productos_inventario'),  # Listar
-    path('productos-inventario/editar/<int:pk>/', views.editar_producto_separado, name='editar_producto_separado'),  # Editar separado
+    path('reportes/', views.reportes_view, name='reportes'), 
+    path('generar_reporte_word/', views.generar_reporte_word, name='generar_reporte_word'),
+    path('productos-inventario/registrar/', views.registrar_producto, name='registrar_producto'),
+    path('productos-inventario/', views.productos_inventario, name='productos_inventario'), 
+    path('productos-inventario/editar/<int:pk>/', views.editar_producto_separado, name='editar_producto_separado'),  
     path('productos-inventario/eliminar/<int:pk>/', views.eliminar_producto, name='eliminar_producto'),
 ]
