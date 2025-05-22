@@ -1,3 +1,7 @@
+# pylint: disable=no-member, missing-function-docstring, trailing-whitespace, line-too-long, ungrouped-imports, redefined-outer-name, unused-argument, missing-module-docstring, missing-final-newline
+
+from django.contrib.auth import logout
+from django.db.models import Sum
 from docx import Document
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -6,20 +10,19 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
-from .models import Movimiento, Producto  
-from django.contrib.auth import logout
-from django.db.models import Sum 
+from .models import Movimiento, Producto
+
+
 
 def home(request):
+    #lleva al home
     return render(request, 'inventario_app/home.html')
 
 def login_view(request):
     if request.method == 'POST':
         correo = request.POST['correo']
-        contrasena = request.POST['contrasena']
-        
+        contrasena = request.POST['contrasena']      
         user = authenticate(request, username=correo, password=contrasena)
-        
         if user is not None:
             login(request, user)  
             return redirect('dashboard')  
@@ -66,19 +69,18 @@ def registro_view(request):
 
 def dashboard(request):
 
-    producto_count = Producto.objects.aggregate(Sum('stock'))['stock__sum'] or 0
+    producto_count = Producto.objects.filter(estado=True).aggregate(Sum('stock'))['stock__sum'] or 0
 
     usuarios = User.objects.all()
 
     usuarios_count = usuarios.count()
-
     return render(request, 'inventario_app/dashboard.html', {'producto_count': producto_count, 'usuarios_count':usuarios_count})
 
 #PARA EL CRUD DE LOS PRODUCTOS
 #VISTA PARA LISTAR LOS PRODUCTOS
 @login_required
 def productos_inventario(request):
-    productos = Producto.objects.all()
+    productos = Producto.objects.filter(estado=True)
     return render(request, 'inventario_app/productos_inventario.html', {'productos': productos})
 
 #VISTA PARA EDITARLOS
@@ -106,8 +108,10 @@ def editar_producto_separado(request, pk):
 @require_POST
 def eliminar_producto(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
-    producto.delete()  # elimina de la base de datos
+    producto.estado = False  # marcar como inactivo
+    producto.save()          # guardar cambios
     return redirect('productos_inventario')
+
 
 #PAGINA DEL CONFIGURACION
 @login_required
@@ -168,7 +172,7 @@ def configuracion(request):
 
 @login_required
 @require_POST
-def eliminar_usuario(request, pk):
+def eliminar_usuario( pk):
     usuario = get_object_or_404(User, pk=pk)
     usuario.delete()
     return redirect('configuracion')
@@ -177,45 +181,63 @@ def eliminar_usuario(request, pk):
 #MOVIMIENTOS
 @login_required
 def movimientos(request):
+    producto_agotado = None  # Variable para alerta
+
     if request.method == 'POST':
         producto_id = request.POST.get('producto')
         tipo_movimiento = request.POST.get('tipo_movimiento')
-        cantidad = int(request.POST.get('cantidad'))  # Convertir a entero
+        cantidad = int(request.POST.get('cantidad'))
 
-        producto = Producto.objects.get(id=producto_id)
-        
+        producto = get_object_or_404(Producto, id=producto_id)
+
         if tipo_movimiento == 'entrada':
-            producto.stock += cantidad  # Agregar al stock
+            producto.stock += cantidad
         elif tipo_movimiento == 'salida':
-            if producto.stock >= cantidad:  # Verificar que haya suficiente stock
-                producto.stock -= cantidad  # Restar del stock
+            if producto.stock >= cantidad:
+                producto.stock -= cantidad
+                if producto.stock == 0:
+                    producto.estado = False
+                    producto_agotado = producto.nombre  # ← Activar alerta por stock 0
             else:
                 return render(request, 'inventario_app/movimientos.html', {
                     'error': 'No hay suficiente stock para la salida',
-                    'productos': Producto.objects.all()
+                    'productos': Producto.objects.filter(estado=True),
+                    'movimientos': Movimiento.objects.all().order_by('-fecha'),
+                    'movimientos_count': Movimiento.objects.count(),
+                    'productos_stock_bajo': Producto.objects.filter(stock__lt=6, estado=True)
                 })
 
         producto.save()
 
-        # Crear el registro del movimiento
         Movimiento.objects.create(
             producto=producto,
             tipo_movimiento=tipo_movimiento,
             cantidad=cantidad,
-            usuario=request.user  # Guardar el usuario que realizó el movimiento
+            usuario=request.user
         )
 
-        return redirect('movimientos')  # Redirige a la misma página para ver los movimientos
+        # Redirección con alerta (usando sesión o GET podría ser más fino, pero lo mantengo simple aquí)
+        if producto_agotado:
+            return render(request, 'inventario_app/movimientos.html', {
+                'movimientos': Movimiento.objects.all().order_by('-fecha'),
+                'movimientos_count': Movimiento.objects.count(),
+                'productos': Producto.objects.filter(estado=True),
+                'productos_stock_bajo': Producto.objects.filter(stock__lt=6, estado=True),
+                'producto_agotado': producto_agotado
+            })
 
+        return redirect('movimientos')
+
+    productos = Producto.objects.filter(estado=True)
     movimientos = Movimiento.objects.all().order_by('-fecha')
-    productos = Producto.objects.all()  # Para mostrar los productos en el formulario
+    productos_stock_bajo = productos.filter(stock__lt=6)
+
     return render(request, 'inventario_app/movimientos.html', {
         'movimientos': movimientos,
         'movimientos_count': movimientos.count(),
-        'productos': productos
+        'productos': productos,
+        'productos_stock_bajo': productos_stock_bajo
     })
-
-
 #REPORTES 
 
 
@@ -234,19 +256,7 @@ def reportes_view(request):
     })
 
 
-#REPORTES
-@login_required
-def reportes_view(request):
-    # Obtener todos los movimientos registrados
-    movimientos = Movimiento.objects.all().order_by('-fecha')
 
-    # Contar el total de movimientos
-    movimientos_count = movimientos.count()
-
-    return render(request, 'inventario_app/reportes.html', {
-        'movimientos': movimientos,
-        'movimientos_count': movimientos_count,
-    })
 
 # Generar el reporte en Word
 @login_required

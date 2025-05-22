@@ -136,8 +136,69 @@
 @media screen and (max-width: 768px) {
   .dashboard-card {
     flex: 1 1 100%; /* En pantallas más pequeñas, las tarjetas ocuparán el 100% del ancho */
-  }}
-  
+  }
+}
+
+.toast-stock {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 16px;
+  border: 1px solid #ffeeba;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  font-family: 'Poppins', sans-serif;
+  z-index: 9999;
+  display: none;
+}
+
+.toast-stock.show {
+  display: block;
+  animation: fadein 0.6s, fadeout 0.6s 5s; /* Desaparece después de 5 segundos */
+}
+
+@keyframes fadein {
+  from {opacity: 0; top: 0;}
+  to {opacity: 1; top: 20px;}
+}
+
+@keyframes fadeout {
+  from {opacity: 1; top: 20px;}
+  to {opacity: 0; top: 0;}
+}
+.toast-agotado {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 16px;
+  border: 1px solid #f5c6cb;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  max-width: 300px;
+  font-family: 'Poppins', sans-serif;
+  z-index: 9999;
+  display: none;
+}
+
+.toast-agotado.show {
+  display: block;
+  animation: fadein 0.6s, fadeout 0.6s 5s;
+}
+
+@keyframes fadein {
+  from {opacity: 0; top: 0;}
+  to {opacity: 1; top: 20px;}
+}
+
+@keyframes fadeout {
+  from {opacity: 1; top: 20px;}
+  to {opacity: 0; top: 0;}
+}  
   </style>
 </head>
 <body>
@@ -160,12 +221,7 @@
   <div id="formulario" class="form-container">
     <h2>Registrar Movimiento</h2>
     
-    <!-- Mostrar error si no hay suficiente stock -->
-    {% if error %}
-      <div style="color: red; margin-bottom: 20px;">
-        <strong>{{ error }}</strong>
-      </div>
-    {% endif %}
+
 
     <form method="POST">
       {% csrf_token %}
@@ -223,6 +279,20 @@
   </div>
 
 </div>
-
+{% if productos_stock_bajo %}
+<div id="toast-stock-bajo" class="toast-stock show">
+  ⚠️ <strong>Stock bajo</strong>: Hay productos con menos de 5 unidades.
+  <ul>
+    {% for p in productos_stock_bajo %}
+      <li>{{ p.nombre }} (Stock: {{ p.stock }})</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if producto_agotado %}
+  <div id="toast-agotado" class="toast-agotado show">
+    ⚠️ <strong>{{ producto_agotado }}</strong> se ha quedado sin stock.
+  </div>
+{% endif %}
 </body>
 </html>
