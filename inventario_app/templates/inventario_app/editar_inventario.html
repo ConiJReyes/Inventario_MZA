@@ -55,39 +55,43 @@
 </head>
 <body>
   {% include "inventario_app/navbar.html" %}
-  
-  <div class="container">
-    <h1>Editar Producto: {{ producto.nombre }}</h1>
-  
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="text" name="nombre" value="{{ producto.nombre }}" required>
-      <textarea name="descripcion" required>{{ producto.descripcion }}</textarea>
-      <input type="number" name="stock" value="{{ producto.stock }}" required>
-      
-      <!-- Filtro floatformat para eliminar decimales en el precio -->
-      <input type="number" step="0.01" name="precio" value="{{ producto.precio|floatformat:0 }}" required>
-  
-      <label>Imagen actual:</label><br>
-      {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-      {% else %}
-        <p>No hay imagen</p>
-      {% endif %}
-      <br>
-  
-      <label>Subir nueva imagen:</label>
-      <input type="file" name="imagen" accept="image/*">
-  
-      <button type="submit">Guardar Cambios</button>
-      <a href="{% url 'productos_inventario' %}" class="cancel">Cancelar</a>
-    </form>
-  
-    <!-- Botón para eliminar producto (soft delete) -->
-    <form method="POST" action="{% url 'eliminar_producto' producto.pk %}" style="margin-top: 20px;" onsubmit="return confirm('¿Seguro que quieres eliminar este producto?');">
-      {% csrf_token %}
-      <button type="submit" style="background-color: #d9534f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-        Eliminar Producto (Soft Delete)
-      </button>
-    </form>
-  </div>
+
+<div class="container">
+  <h1>Editar Producto: {{ producto.nombre }}</h1>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="nombre" value="{{ producto.nombre }}" required>
+    <textarea name="descripcion" required>{{ producto.descripcion }}</textarea>
+    <input type="number" name="stock" value="{{ producto.stock }}" required>
+    
+    <!-- Filtro floatformat para eliminar decimales en el precio -->
+    <input type="number" step="0.01" name="precio" value="{{ producto.precio|floatformat:0 }}" required>
+
+    <label>Fecha de Vencimiento:</label>
+    <!-- Campo de fecha de vencimiento -->
+    <input type="date" name="fecha_vencimiento" value="{{ producto.fecha_vencimiento|date:"Y-m-d" }}">
+
+    <label>Imagen actual:</label><br>
+    {% if producto.imagen %}
+      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+    {% else %}
+      <p>No hay imagen</p>
+    {% endif %}
+    <br>
+
+    <label>Subir nueva imagen:</label>
+    <input type="file" name="imagen" accept="image/*">
+
+    <button type="submit">Guardar Cambios</button>
+    <a href="{% url 'productos_inventario' %}" class="cancel">Cancelar</a>
+  </form>
+
+  <!-- Botón para eliminar producto (soft delete) -->
+  <form method="POST" action="{% url 'eliminar_producto' producto.pk %}" style="margin-top: 20px;" onsubmit="return confirm('¿Seguro que quieres eliminar este producto?');">
+    {% csrf_token %}
+    <button type="submit" style="background-color: #d9534f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+      Eliminar Producto (Soft Delete)
+    </button>
+  </form>
+</div>

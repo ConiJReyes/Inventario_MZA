@@ -12,9 +12,12 @@ class Producto(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     estado = models.BooleanField(default=True)
+    fecha_vencimiento = models.DateField(null=True, blank=True)  # Fecha de vencimiento del producto
 
     def __str__(self):
         return self.nombre
+
+
 
 class Movimiento(models.Model):
     TIPO_MOVIMIENTO = (

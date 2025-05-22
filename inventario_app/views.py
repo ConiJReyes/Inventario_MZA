@@ -15,7 +15,6 @@ from .models import Movimiento, Producto
 
 
 def home(request):
-    #lleva al home
     return render(request, 'inventario_app/home.html')
 
 def login_view(request):
