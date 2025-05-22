@@ -40,9 +40,7 @@
             padding: 30px;
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* sombra ligera */
             border-radius: 10px;
-            /* bordes redondeados */
             text-align: center;
         }
 
@@ -68,13 +66,11 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* sombra ligera */
             transition: transform 0.3s ease;
         }
 
         .dashboard-card:hover {
             transform: translateY(-10px);
-            /* efecto hover para elevar las tarjetas */
         }
 
         .dashboard-card h3 {
@@ -127,39 +123,39 @@
             <div class="dashboard-card">
                 <h3>Agregar productos</h3>
                 <p>Total de productos</p>
-                <a href="{% url 'registrar_producto' %}" class="button">Agregar</a>
+                <a href="{% url 'registrar_producto' %}" class="button">Ir</a>
             </div>
             {% endif %}
 
             <div class="dashboard-card">
                 <h3>Inventario</h3>
                 <p>Total de productos: {{producto_count}}</p>
-                <a href="{% url 'productos_inventario' %}" class="button">Ver Inventario</a>
+                <a href="{% url 'productos_inventario' %}" class="button">Ir</a>
             </div>
 
             <div class="dashboard-card">
                 <h3>Movimientos</h3>
                 <p>Entradas y salidas registradas:{{ movimientos_count }}</p>
-                <a href="{% url 'movimientos' %}" class="button">Ver Movimientos</a>
+                <a href="{% url 'movimientos' %}" class="button">Ir</a>
             </div>
 
             <div class="dashboard-card">
                 <h3>Reportes</h3>
                 <p>Últimos reportes generados: 5</p>
-                <a href="{% url 'reportes' %}" class="button">Ver Reportes</a>
+                <a href="{% url 'reportes' %}" class="button">Ir</a>
             </div>
             
             <div class="dashboard-card">
                 <h3>Proveedor</h3>
                 <p>Contactar Proveedor</p>
-                <a href="{% url 'proveedores' %}" class="button">Contactar</a>
+                <a href="{% url 'proveedores' %}" class="button">Ir</a>
             </div>
 
             {% if user.is_staff %}
             <div class="dashboard-card">
                 <h3>Usuarios</h3>
                 <p>Usuarios registrados: {{usuarios_count}}</p>
-                <a href="{% url 'configuracion' %}" class="button">Gestionar Usuarios</a>
+                <a href="{% url 'configuracion' %}" class="button">Ir</a>
             </div>
             {% endif %}
         </div>
