@@ -33,3 +33,14 @@ class Movimiento(models.Model):
 
     def __str__(self):
         return f"{self.tipo_movimiento.capitalize()} - {self.producto.nombre} - {self.cantidad} piezas"
+
+
+#MODELO DE LOS PROVEEDORES
+class Proveedor(models.Model):
+    nombre = models.CharField(max_length=255)
+    contacto = models.CharField(max_length=255, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.nombre

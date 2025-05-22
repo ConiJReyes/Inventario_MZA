@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
 from .models import Movimiento, Producto
+from .models import Proveedor
 
 
 
@@ -306,7 +307,7 @@ def registrar_producto(request):
         descripcion = request.POST.get('descripcion')
         stock = request.POST.get('stock')
         precio = request.POST.get('precio')
-        imagen = request.FILES.get('imagen')  # Obtiene la imagen si es que se sube
+        imagen = request.FILES.get('imagen')  
 
         # Crear el nuevo producto
         Producto.objects.create(
@@ -317,6 +318,53 @@ def registrar_producto(request):
             imagen=imagen
         )
 
-        return redirect('productos_inventario')  # Redirige a la lista de productos después de crear
+        return redirect('productos_inventario')  
 
-    return render(request, 'inventario_app/registrar_producto.html')  # Muestra el formulario para agregar un nuevo producto
+    return render(request, 'inventario_app/registrar_producto.html')  
+
+#PROVEEDORES
+@login_required
+def proveedores_view(request):
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        nombre = request.POST.get('nombre')
+        contacto = request.POST.get('contacto')
+        telefono = request.POST.get('telefono')
+        email = request.POST.get('email')
+
+        # Crear un nuevo proveedor
+        Proveedor.objects.create(
+            nombre=nombre,
+            contacto=contacto,
+            telefono=telefono,
+            email=email
+        )
+
+        return redirect('proveedores')  # Redirigir a la misma vista después de crear un proveedor
+
+    # Obtener todos los proveedores registrados
+    proveedores = Proveedor.objects.all()
+    return render(request, 'inventario_app/proveedores.html', {'proveedores': proveedores})
+
+# Editar proveedor existente
+@login_required
+def editar_proveedor(request, pk):
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+
+    if request.method == 'POST':
+        proveedor.nombre = request.POST.get('nombre')
+        proveedor.contacto = request.POST.get('contacto')
+        proveedor.telefono = request.POST.get('telefono')
+        proveedor.email = request.POST.get('email')
+        proveedor.save()
+
+        return redirect('proveedores')  # Redirigir a la lista de proveedores después de la edición
+
+    return render(request, 'inventario_app/editar_proveedor.html', {'proveedor': proveedor})
+
+# Eliminar proveedor
+@login_required
+def eliminar_proveedor(request, pk):
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+    proveedor.delete()  # Eliminar proveedor de la base de datos
+    return redirect('proveedores')  # Redirigir a la lista de proveedores después de eliminar

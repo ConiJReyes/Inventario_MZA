@@ -148,6 +148,12 @@
                 <p>Últimos reportes generados: 5</p>
                 <a href="{% url 'reportes' %}" class="button">Ver Reportes</a>
             </div>
+            
+            <div class="dashboard-card">
+                <h3>Proveedor</h3>
+                <p>Contactar Proveedor</p>
+                <a href="{% url 'proveedores' %}" class="button">Contactar</a>
+            </div>
 
             {% if user.is_staff %}
             <div class="dashboard-card">
