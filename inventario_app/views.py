@@ -47,7 +47,7 @@ def registro_view(request):
         if User.objects.filter(username=correo).exists():
             return render(request, 'inventario_app/registro.html', {'error': 'Correo ya registrado'})
 
-        usuario = User.objects.create_user(username=correo, email=correo, password=contrasena, first_name=nombre)
+        usuario = User.objects.create_user(username=nombre, email=correo, password=contrasena, first_name=nombre)
 
         
         if rol:
@@ -103,22 +103,45 @@ def eliminar_producto(request, pk):
 #PAGINA DEL CONFIGURACION
 @login_required
 def configuracion(request):
-    if request.method == 'POST':
+    # Obtener los grupos del usuario logueado
+    grupos_usuario = request.user.groups.values_list('name', flat=True)
 
+    if request.method == 'POST':
         user_id = request.POST.get('user_id')
         usuario = get_object_or_404(User, pk=user_id)
-        rol = request.POST.get('roles')  
-        
+        rol_seleccionado = request.POST.getlist('groups')  # Obtener los roles seleccionados
+
         # Lógica para prevenir que el administrador cambie su rol
-        if 'Administrador' in rol and 'Administrador' not in [grupo.name for grupo in usuario.groups.all()]:
+        if 'Administrador' in rol_seleccionado and 'Administrador' not in [grupo.name for grupo in usuario.groups.all()]:
             return render(request, 'inventario_app/configuracion.html', {
                 'error': 'No puedes asignar el rol de Administrador.',
                 'usuarios': User.objects.all(),
+                'grupos': Group.objects.all(),
+                'grupos_usuario': grupos_usuario  # Pasamos los grupos al contexto
             })
-        usuario.groups.set(rol)
-        usuario.save()
+        
+        # Verifica si los roles han cambiado
+        if set(rol_seleccionado) != set([grupo.id for grupo in usuario.groups.all()]):
+            usuario.groups.set(rol_seleccionado)
+            usuario.save()
+            mensaje = "Cambios guardados exitosamente."
+        else:
+            mensaje = "No hay cambios que guardar."
+        
+        return render(request, 'inventario_app/configuracion.html', {
+            'mensaje': mensaje,
+            'usuarios': User.objects.all(),
+            'grupos': Group.objects.all(),
+            'grupos_usuario': grupos_usuario  # Pasamos los grupos al contexto
+        })
 
-    return render(request, 'inventario_app/configuracion.html', {'usuarios': User.objects.all()})
+    # Si el método es GET, solo mostramos el formulario
+    return render(request, 'inventario_app/configuracion.html', {
+        'usuarios': User.objects.all(),
+        'grupos': Group.objects.all(),
+        'grupos_usuario': grupos_usuario,  # Para los usuarios logueados
+    })
+
 
 @login_required
 @require_POST

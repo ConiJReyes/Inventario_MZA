@@ -145,6 +145,26 @@
         .button:hover {
             background-color: #3e8e41;
         }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            background-color: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus {
+            border-color: #f7931e;
+        }
+
+        option {
+            padding: 8px;
+            font-size: 14px;
+        }
+
     </style>
 
 </head>
@@ -192,18 +212,27 @@
               onblur="this.style.borderColor='#ccc';"
             />
           </td>
+
+
+          
           <td style="padding: 12px 15px; vertical-align: middle;">
             <select
               name="groups"
               multiple
               size="3"
               style="width: 98%; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background-color: #fafafa;"
+              {% if usuario.id == request.user.id %}
+                disabled  <!-- Deshabilitar solo el select si es el usuario logueado -->
+              {% endif %}
             >
               {% for grupo in grupos %}
                 <option value="{{ grupo.id }}" {% if grupo in usuario.groups.all %}selected{% endif %}>{{ grupo.name }}</option>
               {% endfor %}
             </select>
           </td>
+
+
+
           <td class="acciones" style="padding: 12px 15px; vertical-align: middle; white-space: nowrap;">
             <button
               type="submit"

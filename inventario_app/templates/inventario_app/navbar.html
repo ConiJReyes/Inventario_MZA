@@ -52,12 +52,11 @@
 <body>
   <nav>
 
-    <!-- especificas para el admin -->
-    {% if user.is_staff %}
-    <a href="{% url 'configuracion' %}">Configuración</a>
-    <a href="{% url 'registrar_producto' %}">Agregar Productos</a>
-
+    {% if es_admin %}
+        <a href="{% url 'configuracion' %}">Configuración</a>
+        <a href="{% url 'registrar_producto' %}">Agregar Productos</a>
     {% endif %}
+
 
     <!-- la ven usuarios normales como operarios-->
     {% if user.is_authenticated %}
@@ -66,12 +65,15 @@
     <a href="{% url 'reportes' %}">Reportes</a>
 
     <a href="{% url 'movimientos' %}">Movimientos</a>
+    <a href="">{{user.username}}</a>
     <a href="{% url 'logout' %}">Cerrar sesión</a> 
 
 
     {% else %}
     <a href="{% url 'login' %}">Iniciar Sesión</a>
     {% endif %}
+
+    
   </nav>
 
 
@@ -79,6 +81,10 @@
     {% block content %}
     {% endblock %}
   </div>
+
+ 
+
+
 </body>
 
 </html>
