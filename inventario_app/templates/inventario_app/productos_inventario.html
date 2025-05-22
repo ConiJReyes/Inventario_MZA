@@ -102,7 +102,7 @@
           {% endif %}
 
           <p>Stock: {{ producto.stock }}</p>
-          <p>Precio: ${{ producto.precio }}</p>
+          <p>Precio: ${{ producto.precio|floatformat:0 }}</p>  <!-- Usamos el filtro floatformat para mostrar sin decimales -->
           <a href="{% url 'editar_producto_separado' producto.pk %}" class="button">Editar</a>
         </div>
       {% empty %}

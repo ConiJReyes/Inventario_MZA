@@ -260,6 +260,11 @@
     {% endfor %}
   </tbody>
 </table>
+{% if mensaje %}
+  <div style="color: red; font-weight: bold; text-align: center; margin-bottom: 20px;">
+    {{ mensaje }}
+  </div>
+{% endif %}
 
 <a href="{% url 'registro' %}" class="button">Crear Nuevo Usuario</a>
 </div>

@@ -133,7 +133,7 @@
 
             <div class="dashboard-card">
                 <h3>Inventario</h3>
-                <p>Total de productos: 350</p>
+                <p>Total de productos: {{producto_count}}</p>
                 <a href="{% url 'productos_inventario' %}" class="button">Ver Inventario</a>
             </div>
 
@@ -152,7 +152,7 @@
             {% if user.is_staff %}
             <div class="dashboard-card">
                 <h3>Usuarios</h3>
-                <p>Usuarios registrados: 50</p>
+                <p>Usuarios registrados: {{usuarios_count}}</p>
                 <a href="{% url 'configuracion' %}" class="button">Gestionar Usuarios</a>
             </div>
             {% endif %}

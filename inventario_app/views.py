@@ -8,7 +8,7 @@ from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
 from .models import Movimiento, Producto  
 from django.contrib.auth import logout
-
+from django.db.models import Sum 
 
 def home(request):
     return render(request, 'inventario_app/home.html')
@@ -41,15 +41,18 @@ def registro_view(request):
         confirmar = request.POST.get('confirmar')
         rol = request.POST.get('rol')  
 
+        # Verificar que las contraseñas coinciden
         if contrasena != confirmar:
             return render(request, 'inventario_app/registro.html', {'error': 'Las contraseñas no coinciden'})
 
+        # Verificar si el correo ya está registrado
         if User.objects.filter(username=correo).exists():
             return render(request, 'inventario_app/registro.html', {'error': 'Correo ya registrado'})
 
+        # Crear el usuario
         usuario = User.objects.create_user(username=nombre, email=correo, password=contrasena, first_name=nombre)
 
-        
+        # Asignar el grupo según el rol seleccionado
         if rol:
             grupo = Group.objects.filter(name=rol).first()
             if grupo:
@@ -57,13 +60,19 @@ def registro_view(request):
 
         return redirect('dashboard')
 
-    return render(request, 'inventario_app/registro.html')
+    # Pasar los grupos al template para el select
+    grupos = Group.objects.all()  # Obtener todos los grupos existentes
+    return render(request, 'inventario_app/registro.html', {'grupos': grupos})
 
-@login_required
 def dashboard(request):
-    return render(request, 'inventario_app/dashboard.html')
 
+    producto_count = Producto.objects.aggregate(Sum('stock'))['stock__sum'] or 0
 
+    usuarios = User.objects.all()
+
+    usuarios_count = usuarios.count()
+
+    return render(request, 'inventario_app/dashboard.html', {'producto_count': producto_count, 'usuarios_count':usuarios_count})
 
 #PARA EL CRUD DE LOS PRODUCTOS
 #VISTA PARA LISTAR LOS PRODUCTOS
@@ -120,14 +129,28 @@ def configuracion(request):
                 'grupos_usuario': grupos_usuario  # Pasamos los grupos al contexto
             })
         
-        # Verifica si los roles han cambiado
-        if set(rol_seleccionado) != set([grupo.id for grupo in usuario.groups.all()]):
-            usuario.groups.set(rol_seleccionado)
+        # Verificar si los datos realmente cambiaron
+        # Comparar los datos actuales con los datos del formulario
+        cambios = False
+        if usuario.first_name != request.POST.get('first_name'):
+            usuario.first_name = request.POST.get('first_name')
+            cambios = True
+        if usuario.email != request.POST.get('email'):
+            usuario.email = request.POST.get('email')
+            cambios = True
+
+        # Verificar si los grupos fueron modificados
+        roles_actuales = [grupo.id for grupo in usuario.groups.all()]
+        if sorted(rol_seleccionado) != sorted(roles_actuales):
+            usuario.groups.set(Group.objects.filter(id__in=rol_seleccionado))
+            cambios = True
+
+        if cambios:
             usuario.save()
             mensaje = "Cambios guardados exitosamente."
         else:
             mensaje = "No hay cambios que guardar."
-        
+
         return render(request, 'inventario_app/configuracion.html', {
             'mensaje': mensaje,
             'usuarios': User.objects.all(),
