@@ -112,94 +112,94 @@
       color: #3b4a3f;
     }
     .dashboard-cards {
-  display: flex;
-  justify-content: space-between; /* Espacio entre las tarjetas */
-  gap: 20px; /* Espacio entre las tarjetas */
-  flex-wrap: wrap; /* Permite que las tarjetas se ajusten si la pantalla es pequeña */
-}
+    display: flex;
+    justify-content: space-between; /* Espacio entre las tarjetas */
+    gap: 20px; /* Espacio entre las tarjetas */
+    flex-wrap: wrap; /* Permite que las tarjetas se ajusten si la pantalla es pequeña */
+    }
 
-.dashboard-card {
-  flex: 1 1 calc(50% - 20px); /* Las tarjetas ocupan el 50% del espacio disponible, con margen */
-  padding: 20px;
-  background-color: #eae3dd;
-  border: 1px solid #444;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
+    .dashboard-card {
+      flex: 1 1 calc(50% - 20px); /* Las tarjetas ocupan el 50% del espacio disponible, con margen */
+      padding: 20px;
+      background-color: #eae3dd;
+      border: 1px solid #444;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
 
-.dashboard-card:hover {
-  transform: translateY(-10px);
-}
+    .dashboard-card:hover {
+      transform: translateY(-10px);
+    }
 
-@media screen and (max-width: 768px) {
-  .dashboard-card {
-    flex: 1 1 100%; /* En pantallas más pequeñas, las tarjetas ocuparán el 100% del ancho */
-  }
-}
+    @media screen and (max-width: 768px) {
+      .dashboard-card {
+        flex: 1 1 100%; /* En pantallas más pequeñas, las tarjetas ocuparán el 100% del ancho */
+      }
+    }
 
-.toast-stock {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background-color: #fff3cd;
-  color: #856404;
-  padding: 16px;
-  border: 1px solid #ffeeba;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 300px;
-  font-family: 'Poppins', sans-serif;
-  z-index: 9999;
-  display: none;
-}
+    .toast-stock {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 16px;
+      border: 1px solid #ffeeba;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+      font-family: 'Poppins', sans-serif;
+      z-index: 9999;
+      display: none;
+    }
 
-.toast-stock.show {
-  display: block;
-  animation: fadein 0.6s, fadeout 0.6s 5s; /* Desaparece después de 5 segundos */
-}
+    .toast-stock.show {
+      display: block;
+      animation: fadein 0.6s, fadeout 0.6s 5s; /* Desaparece después de 5 segundos */
+    }
 
-@keyframes fadein {
-  from {opacity: 0; top: 0;}
-  to {opacity: 1; top: 20px;}
-}
+    @keyframes fadein {
+      from {opacity: 0; top: 0;}
+      to {opacity: 1; top: 20px;}
+    }
 
-@keyframes fadeout {
-  from {opacity: 1; top: 20px;}
-  to {opacity: 0; top: 0;}
-}
-.toast-agotado {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 16px;
-  border: 1px solid #f5c6cb;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  max-width: 300px;
-  font-family: 'Poppins', sans-serif;
-  z-index: 9999;
-  display: none;
-}
+    @keyframes fadeout {
+      from {opacity: 1; top: 20px;}
+      to {opacity: 0; top: 0;}
+    }
+    .toast-agotado {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 16px;
+      border: 1px solid #f5c6cb;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 300px;
+      font-family: 'Poppins', sans-serif;
+      z-index: 9999;
+      display: none;
+    }
 
-.toast-agotado.show {
-  display: block;
-  animation: fadein 0.6s, fadeout 0.6s 5s;
-}
+    .toast-agotado.show {
+      display: block;
+      animation: fadein 0.6s, fadeout 0.6s 5s;
+    }
 
-@keyframes fadein {
-  from {opacity: 0; top: 0;}
-  to {opacity: 1; top: 20px;}
-}
+    @keyframes fadein {
+      from {opacity: 0; top: 0;}
+      to {opacity: 1; top: 20px;}
+    }
 
-@keyframes fadeout {
-  from {opacity: 1; top: 20px;}
-  to {opacity: 0; top: 0;}
-}  
-  </style>
+    @keyframes fadeout {
+      from {opacity: 1; top: 20px;}
+      to {opacity: 0; top: 0;}
+    }  
+    </style>
 </head>
 <body>
 

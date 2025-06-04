@@ -103,6 +103,7 @@
   {% include "inventario_app/navbar.html" %}
 
   <div class="container">
+    
     <h1>Piezas</h1>
 
     <div class="productos-lista">
@@ -149,6 +150,24 @@
         <p>No hay kits disponibles.</p>
       {% endfor %}
     </div>
+
+    <h2>Lotes</h2>
+
+    <div class="kits-lista">
+      {% for lote in lotes %}
+        <div class= "kit-card">
+          <h3>De {{ lote.producto }}</h3>
+          <p><strong>Numero Lote</strong> {{ lote.numero_lote }}</p>
+          <p><strong>Stock del Kit:</strong> {{ lote.cantidad }}</p>
+          <p><strong>Fecha Vencimiento:</strong> {{ lote.fecha_vencimiento }}</p>
+          <p><strong>Marca:</strong> {{ lote.marca }}</p>
+        </div>
+      {% empty %}
+        <p>No hay Lotes disponibles.</p>
+      {% endfor %}
+    </div>
+
+
   </div>
 
 </body>

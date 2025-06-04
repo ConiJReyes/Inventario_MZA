@@ -10,7 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
-from .models import Movimiento, Producto, Kit, KitComponente
+from .models import Movimiento, Producto, Kit, KitComponente, Lote
 from .models import Proveedor
 
 
@@ -82,7 +82,8 @@ def dashboard(request):
 def productos_inventario(request):
     productos = Producto.objects.filter(estado=True)
     kits = Kit.objects.all().order_by('nombre').prefetch_related('kitcomponentes__producto')
-    return render(request, 'inventario_app/productos_inventario.html', {'productos': productos, 'kits': kits})
+    lotes = Lote.objects.all()
+    return render(request, 'inventario_app/productos_inventario.html', {'productos': productos, 'kits': kits, 'lotes':lotes})
 
 #VISTA PARA EDITARLOS
 
@@ -419,3 +420,39 @@ def crear_kit(request):
     else:
         piezas = Producto.objects.filter(estado=True).order_by('nombre')
         return render(request, 'inventario_app/registrar_producto.html', {'piezas': piezas})
+
+
+def registrar_lote(request):
+    if request.method == 'POST':
+        producto_id = request.POST.get('producto')
+        numero_lote = request.POST.get('numero_lote')
+        cantidad = int(request.POST.get('cantidad'))
+        fecha_vencimiento = request.POST.get('fecha_vencimiento')
+        marca = request.POST.get('marca')
+
+        # Validaciones
+        if not producto_id or not numero_lote or cantidad <= 0:
+            messages.error(request, "Todos los campos son obligatorios y la cantidad debe ser mayor que cero.")
+            return redirect('registrar_lote')  # Redirige de nuevo al formulario
+
+        try:
+            producto = Producto.objects.get(id=producto_id)
+            lote = Lote.objects.create(
+                producto=producto,
+                numero_lote=numero_lote,
+                cantidad=cantidad,
+                fecha_vencimiento=fecha_vencimiento,
+                marca=marca
+            )
+            lote.producto.actualizar_stock()  # Actualizar el stock del producto
+
+            messages.success(request, f"Lote '{numero_lote}' registrado exitosamente.")
+            return redirect('productos_inventario')  # Redirige a la vista de inventarios
+
+        except Producto.DoesNotExist:
+            messages.error(request, "Producto no encontrado.")
+            return redirect('registrar_lote')
+
+    else:
+        productos = Producto.objects.all()  # Obtener todos los productos
+        return render(request, 'inventario_app/registrar_producto.html', {'piezas': productos})
