@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            gap: 40px;
+            font-weight: bold;
+            background-color: #3b4a3f;
+            /* color verde oscuro para el navbar */
+            color: #fff;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #f7931e;
+            /* naranja al pasar el mouse */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #3b4a3f;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-cards {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            display: inline-block;
+            width: 23%;
+            padding: 20px;
+            background-color: #eae3dd;
+            border: 1px solid #444;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .dashboard-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #3b4a3f;
+        }
+
+        .dashboard-card p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            padding: 12px 24px;
+            background-color: #f7931e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background-color: #d76f0a;
+        }
+
+        @media screen and (max-width: 768px) {
+            .dashboard-card {
+                width: 48%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .dashboard-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include "inventario_app/navbar.html" %}
+    <div class="container">
+        <h1>Bienvenido al Dashboard</h1>
+        <div class="dashboard-cards">
+            {% if user.is_staff %}
+            <div class="dashboard-card">
+                <h3>Agregar productos</h3>
+                <p>Total de productos</p>
+                <a href="{% url 'registrar_producto' %}" class="button">Ir</a>
+            </div>
+            {% endif %}
+
+            <div class="dashboard-card">
+                <h3>Inventario</h3>
+                <p>Total de piezas: {{producto_count}}</p>
+                <p>Total de Kits: {{kit_count}}</p>
+                <p>Total de Lotes: {{lotes_count}}</p>
+                <a href="{% url 'productos_inventario' %}" class="button">Ir</a>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>Movimientos</h3>
+                <p>Entradas y salidas registradas:{{ movimientos_count }}</p>
+                <a href="{% url 'movimientos' %}" class="button">Ir</a>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>Reportes</h3>
+                <p>Últimos reportes generados: 5</p>
+                <a href="{% url 'reportes' %}" class="button">Ir</a>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>Proveedor</h3>
+                <p>Contactar Proveedor</p>
+                <a href="{% url 'proveedores' %}" class="button">Ir</a>
+            </div>
+
+            {% if user.is_staff %}
+            <div class="dashboard-card">
+                <h3>Usuarios</h3>
+                <p>Usuarios registrados: {{usuarios_count}}</p>
+                <a href="{% url 'configuracion' %}" class="button">Ir</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
