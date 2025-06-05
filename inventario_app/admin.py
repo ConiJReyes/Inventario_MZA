@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import Producto, Kit, KitComponente, Lote
+from .models import Producto, Kit, KitComponente, Lote, Movimiento
 
 admin.site.register(Producto)
 admin.site.register(Kit)
 admin.site.register(Lote)
 admin.site.register(KitComponente)
+admin.site.register(Movimiento)

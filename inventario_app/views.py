@@ -12,7 +12,7 @@ from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_POST
 from .models import Movimiento, Producto, Kit, KitComponente, Lote
 from .models import Proveedor
-
+from django.contrib import messages
 
 
 def home(request):
@@ -98,7 +98,6 @@ def editar_producto_separado(request, pk):
         producto.nombre = request.POST['nombre']
         producto.descripcion = request.POST['descripcion']
         producto.stock = request.POST['stock']
-        producto.precio = request.POST['precio']
 
         # Procesar la fecha de vencimiento, asegurándose de que el formato sea correcto
         if 'fecha_vencimiento' in request.POST:
@@ -193,59 +192,73 @@ def eliminar_usuario( pk):
 #MOVIMIENTOS
 @login_required
 def movimientos(request):
-    producto_agotado = None  # Variable para alerta
+    producto_agotado = None
+    productos_stock_bajo = Producto.objects.filter(stock__lt=5, estado=True)
+    toast_alerta = None
 
     if request.method == 'POST':
         tipo_elemento = request.POST.get('tipo_elemento')
         producto_id = request.POST.get('producto')
         tipo_movimiento = request.POST.get('tipo_movimiento')
         cantidad = int(request.POST.get('cantidad'))
+        motivo_movimiento = request.POST.get('motivo_movimiento')
 
-        # Si el movimiento es de tipo 'kit'
+        print(f"Cantidad recibida: {cantidad}")
+
+        # --- 1) Movimientos de Kit ---
         if tipo_elemento == 'kit':
             kit = get_object_or_404(Kit, id=producto_id)
             if tipo_movimiento == 'entrada':
-                kit.stock += cantidad  # Incrementar stock del kit
+                kit.stock += cantidad
+                kit.save()
             elif tipo_movimiento == 'salida':
-                # Descontar las piezas asociadas al kit
+                # Descontar piezas del kit
                 for componente in kit.kitcomponentes.all():
-                    producto = componente.producto
-                    cantidad_a_descontar = componente.cantidad * cantidad  # Descontamos según la cantidad de kits
-                    if producto.stock >= cantidad_a_descontar:
-                        producto.stock -= cantidad_a_descontar
-                        producto.save()
+                    prod = componente.producto
+                    descontar = componente.cantidad * cantidad
+                    if prod.stock >= descontar:
+                        prod.stock -= descontar
+                        prod.save()
                     else:
-                        messages.error(request, f"No hay suficiente stock de la pieza {producto.nombre}.")
+                        messages.error(request, f"No hay suficiente stock de la pieza {prod.nombre}.")
                         return redirect('movimientos')
-                kit.estado = False  # Marcar el kit como inactivo
+                kit.estado = False
                 kit.save()
 
-        # Si el movimiento es de tipo 'pieza'
+        # --- 2) Movimientos de Pieza ---
         elif tipo_elemento == 'pieza':
             producto = get_object_or_404(Producto, id=producto_id)
             if tipo_movimiento == 'entrada':
-                producto.stock += cantidad  # Incrementar stock de la pieza
+                producto.stock += cantidad
+                producto.save()
             elif tipo_movimiento == 'salida':
                 if producto.stock >= cantidad:
                     producto.stock -= cantidad
                     if producto.stock == 0:
                         producto.estado = False
-                        producto_agotado = producto.nombre  # ← Activar alerta por stock 0
+                        producto_agotado = producto.nombre
+
+                    # Si se saca más de 50 unidades, creamos el toast aquí
+                    if cantidad > 50:
+                        print('SACARON MÁS DE 50 PIEZAS')
+                        toast_alerta = f"¡Alerta! Se ha realizado una salida de más de 50 unidades de {producto.nombre}."
                 else:
+                    # No alcanza stock, renderizamos de inmediato
                     return render(request, 'inventario_app/movimientos.html', {
                         'error': 'No hay suficiente stock para la salida',
                         'productos': Producto.objects.filter(estado=True),
                         'movimientos': Movimiento.objects.all().order_by('-fecha'),
                         'movimientos_count': Movimiento.objects.count(),
-                        'productos_stock_bajo': Producto.objects.filter(stock__lt=6, estado=True)
+                        'productos_stock_bajo': productos_stock_bajo
                     })
-            producto.save()
+                producto.save()
 
-        # Si el movimiento es de tipo 'lote'
+        # --- 3) Movimientos de Lote ---
         elif tipo_elemento == 'lote':
             lote = get_object_or_404(Lote, id=producto_id)
             if tipo_movimiento == 'entrada':
-                lote.cantidad += cantidad  # Incrementar cantidad del lote
+                lote.cantidad += cantidad
+                lote.save()
             elif tipo_movimiento == 'salida':
                 if lote.cantidad >= cantidad:
                     lote.cantidad -= cantidad
@@ -254,43 +267,53 @@ def movimientos(request):
                     messages.error(request, f"No hay suficiente cantidad en el lote {lote.numero_lote}.")
                     return redirect('movimientos')
 
-        # Registrar el movimiento
+        # --- 4) Crear el registro de Movimiento ---
         Movimiento.objects.create(
-            producto=Producto.objects.get(id=producto_id) if tipo_elemento != 'kit' else None,
+            producto=Producto.objects.get(id=producto_id) if tipo_elemento == 'pieza' else None,
             lote=Lote.objects.get(id=producto_id) if tipo_elemento == 'lote' else None,
             tipo_elemento=tipo_elemento,
             tipo_movimiento=tipo_movimiento,
             cantidad=cantidad,
+            motivo_movimiento=motivo_movimiento,
             usuario=request.user
         )
 
-        # Redirección con alerta (usando sesión o GET podría ser más fino, pero lo mantengo simple aquí)
+        # --- 5) Si producto se agotó, renderizamos con esa alerta ---
         if producto_agotado:
             return render(request, 'inventario_app/movimientos.html', {
                 'movimientos': Movimiento.objects.all().order_by('-fecha'),
                 'movimientos_count': Movimiento.objects.count(),
                 'productos': Producto.objects.filter(estado=True),
-                'productos_stock_bajo': Producto.objects.filter(stock__lt=6, estado=True),
-                'producto_agotado': producto_agotado
+                'productos_stock_bajo': productos_stock_bajo,
+                'producto_agotado': producto_agotado,
+                'toast_alerta': None  # No es necesario toast de >50 aquí
             })
 
+        # --- 6) Si creamos un toast_alerta (cantidad > 50), renderizamos aquí mismo ---
+        if toast_alerta:
+            return render(request, 'inventario_app/movimientos.html', {
+                'movimientos': Movimiento.objects.all().order_by('-fecha'),
+                'movimientos_count': Movimiento.objects.count(),
+                'productos': Producto.objects.filter(estado=True),
+                'productos_stock_bajo': productos_stock_bajo,
+                'toast_alerta': toast_alerta
+            })
+
+        # --- 7) Si no hubo nada especial, hacemos redirect para limpiar el POST ---
         return redirect('movimientos')
 
-    # Si es una solicitud GET, solo mostrar el formulario
+    # GET inicial o después del redirect
     productos = Producto.objects.filter(estado=True)
-    kits = Kit.objects.all()
-    lotes = Lote.objects.all()
     movimientos = Movimiento.objects.all().order_by('-fecha')
-    productos_stock_bajo = productos.filter(stock__lt=6)
 
     return render(request, 'inventario_app/movimientos.html', {
         'movimientos': movimientos,
         'movimientos_count': movimientos.count(),
         'productos': productos,
         'productos_stock_bajo': productos_stock_bajo,
-        'kits': kits,
-        'lotes': lotes
+        'toast_alerta': None
     })
+
 #REPORTES 
 
 
@@ -363,7 +386,6 @@ def registrar_producto(request):
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         stock = request.POST.get('stock')
-        precio = request.POST.get('precio')
         imagen = request.FILES.get('imagen')  
 
         # Crear el nuevo producto
@@ -371,7 +393,6 @@ def registrar_producto(request):
             nombre=nombre,
             descripcion=descripcion,
             stock=stock,
-            precio=precio,
             imagen=imagen
         )
 
@@ -434,17 +455,20 @@ def crear_kit(request):
         pieza_ids = request.POST.getlist('pieza_ids[]')
         cantidades = request.POST.getlist('cantidades[]')
 
+        # Validaciones
         if not nombre:
             messages.error(request, "El nombre del kit es obligatorio.")
-            return redirect('inventario_app/registrar_producto.html')  # Cambia por la URL o nombre correcto del formulario
+            return redirect('inventario_app/registrar_producto.html')
 
         if not pieza_ids or not cantidades or len(pieza_ids) != len(cantidades):
             messages.error(request, "Debe seleccionar piezas y cantidades válidas.")
             return redirect('inventario_app/registrar_producto.html')
 
         try:
-            kit = Kit.objects.create(nombre=nombre, descripcion=descripcion)
+            # Crear el kit
+            kit, created = Kit.objects.get_or_create(nombre=nombre, descripcion=descripcion)
 
+            # Crear los componentes del kit (relación con las piezas)
             for pieza_id, cantidad in zip(pieza_ids, cantidades):
                 pieza = Producto.objects.get(id=pieza_id)
                 cantidad = int(cantidad)
@@ -452,9 +476,22 @@ def crear_kit(request):
                     continue
                 KitComponente.objects.create(kit=kit, producto=pieza, cantidad=cantidad)
 
-            kit.actualizar_stock()  # Actualiza stock basado en piezas
-            messages.success(request, f"Kit '{kit.nombre}' creado exitosamente.")
-            return redirect('dashboard/')  # Cambia al lugar donde quieres redirigir
+            # Calcular el stock del kit basado en las piezas
+            cantidades_posibles = []
+            for componente in kit.kitcomponentes.all():
+                # Calculamos cuántos kits podemos hacer con el stock de cada pieza
+                cantidad_posible = componente.producto.stock // componente.cantidad
+                cantidades_posibles.append(cantidad_posible)
+
+            # El stock del kit es el mínimo de los valores posibles según las piezas
+            kit.stock = min(cantidades_posibles) if cantidades_posibles else 0
+            kit.save()
+
+            # Actualizar el stock basado en las piezas
+            kit.actualizar_stock()
+
+            messages.success(request, f"Se ha creado el kit '{kit.nombre}' con un stock de {kit.stock} kits.")
+            return redirect('dashboard/')
 
         except Producto.DoesNotExist:
             messages.error(request, "Alguna de las piezas seleccionadas no existe.")
@@ -503,3 +540,13 @@ def registrar_lote(request):
     else:
         productos = Producto.objects.all()  # Obtener todos los productos
         return render(request, 'inventario_app/registrar_producto.html', {'piezas': productos})
+    
+
+
+
+def detalles_movimiento(request, id_movimiento):
+    # Obtener el movimiento específico
+    movimiento = get_object_or_404(Movimiento, id=id_movimiento)
+
+    # Pasar el movimiento a la plantilla
+    return render(request, 'inventario_app/detalles_movimiento.html', {'movimiento': movimiento})

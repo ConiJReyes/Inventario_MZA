@@ -118,15 +118,18 @@
           {% endif %}
 
           <p><strong>Stock:</strong> {{ producto.stock }}</p>
-          <p><strong>Precio:</strong> ${{ producto.precio|floatformat:0 }}</p>
-          <a href="{% url 'editar_producto_separado' producto.pk %}" class="button">Editar</a>
+
+          {% if es_admin %}
+            <a href="{% url 'editar_producto_separado' producto.pk %}" class="button">Editar</a>
+          {% endif %}
+
         </div>
       {% empty %}
         <p>No hay productos disponibles.</p>
       {% endfor %}
     </div>
 
-    <h2>Kits</h2>
+    {% comment %} <h2>Kits</h2>
 
     <div class="kits-lista">
       {% for kit in kits %}
@@ -172,4 +175,4 @@
 
 </body>
 
-</html>
+</html> {% endcomment %}

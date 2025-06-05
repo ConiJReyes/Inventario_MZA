@@ -1,11 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Producto(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField()
     stock = models.IntegerField(default=0)  # Stock total, suma de lotes
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -21,10 +21,7 @@ class Producto(models.Model):
         self.stock = total
         self.save()
 
-
-
-# Nuevo modelo de lotes, mandale el caso al chat y preguntale sobre los lotes, pero en resumen son agrupaciones de
-# piezas(productos) entonces eso, es medio confuso
+# Nuevo modelo de lotes
 class Lote(models.Model):
     producto = models.ForeignKey(Producto, related_name='lotes', on_delete=models.CASCADE)
     numero_lote = models.CharField(max_length=100)
@@ -37,14 +34,13 @@ class Lote(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Al guardar lote, actualizar el stock total del producto padre
         self.producto.actualizar_stock()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         self.producto.actualizar_stock()
 
-#conjunto de piezas
+# Modelo de kits
 class Kit(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
@@ -56,8 +52,6 @@ class Kit(models.Model):
         return self.nombre
 
     def actualizar_stock(self):
-        # El stock de un kit depende de las piezas componentes y sus cantidades.
-        # Calcular el máximo de kits que se pueden armar según el stock de cada pieza
         cantidades = []
         for componente in self.kitcomponentes.all():
             if componente.cantidad > 0:
@@ -68,7 +62,6 @@ class Kit(models.Model):
         self.stock = min(cantidades) if cantidades else 0
         self.save()
 
-#cosas de cada kit
 class KitComponente(models.Model):
     kit = models.ForeignKey(Kit, related_name='kitcomponentes', on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
@@ -88,7 +81,7 @@ class KitComponente(models.Model):
         super().delete(*args, **kwargs)
         self.kit.actualizar_stock()
 
-
+# Modelo de movimiento
 class Movimiento(models.Model):
     TIPO_MOVIMIENTO = (
         ('entrada', 'Entrada'),
@@ -102,11 +95,12 @@ class Movimiento(models.Model):
 
     producto = models.ForeignKey(Producto, null=True, blank=True, on_delete=models.CASCADE)
     lote = models.ForeignKey(Lote, null=True, blank=True, on_delete=models.SET_NULL)
-    tipo_elemento = models.CharField(max_length=10, choices=TIPO_ELEMENTO, default='pieza')  # Nuevo campo para tipo de elemento
+    tipo_elemento = models.CharField(max_length=10, choices=TIPO_ELEMENTO, default='pieza')
     tipo_movimiento = models.CharField(max_length=7, choices=TIPO_MOVIMIENTO)
     cantidad = models.IntegerField()
     fecha = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    motivo_movimiento = models.CharField(default=True)
 
     def __str__(self):
         if self.tipo_elemento == 'kit':
@@ -114,22 +108,30 @@ class Movimiento(models.Model):
         return f"{self.tipo_movimiento.capitalize()} - {self.producto.nombre} - {self.cantidad} unidades"
 
     def save(self, *args, **kwargs):
-        # Si el movimiento es de un kit, descontamos las piezas del stock
         if self.tipo_elemento == 'kit' and self.tipo_movimiento == 'salida':
             self.descontar_piezas_del_kit()
+        if self.tipo_elemento == 'lote' and self.tipo_movimiento == 'salida':
+            self.descontar_piezas_del_lote()
         super().save(*args, **kwargs)
 
     def descontar_piezas_del_kit(self):
-        # Descontar las piezas de los kits
-        kit = Kit.objects.get(id=self.producto.id)  # Obtener el kit relacionado
-        for componente in kit.kitcomponentes.all():  # Iterar sobre los componentes del kit
+        kit = Kit.objects.get(id=self.producto.id)
+        for componente in kit.kitcomponentes.all():
             producto = componente.producto
             cantidad_a_descontar = componente.cantidad * self.cantidad  # Descontamos según la cantidad de kits
             producto.stock -= cantidad_a_descontar  # Descontamos del stock de cada pieza
-            producto.save()  # Guardamos el cambio en el stock
+            producto.save()
         kit.estado = False  # Marcar el kit como inactivo
         kit.save()
-        # Podrías actualizar aquí stocks y validaciones según movimiento
+
+    def descontar_piezas_del_lote(self):
+        lote = Lote.objects.get(id=self.lote.id)
+        producto = lote.producto
+        cantidad_a_descontar = self.cantidad  # Descontamos según la cantidad de lote
+        producto.stock -= cantidad_a_descontar
+        producto.save()
+        lote.save()
+
 
 
 class Proveedor(models.Model):
