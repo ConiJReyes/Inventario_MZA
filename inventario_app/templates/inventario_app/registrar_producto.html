@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registrar Piezas, Kits y Lotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    section {
+      flex: 1 1 500px;
+      min-width: 300px;
+    }
+
+    h1, h2 {
+      color: #3b4a3f;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 10px;
+      align-self: flex-start;
+    }
+
+    button:hover {
+      background-color: #d76f0a;
+    }
+
+    .kit-pieza-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .kit-pieza-row select,
+    .kit-pieza-row input[type="number"] {
+      flex: 1;
+    }
+
+    .add-pieza-btn {
+      margin-top: 10px;
+      background-color: #3b4a3f;
+      text-transform: none;
+    }
+
+    .add-pieza-btn:hover {
+      background-color: #2e3a31;
+    }
+
+    .lote-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .lote-row select,
+    .lote-row input {
+      flex: 1;
+    }
+
+  </style>
+</head>
+
+<body>
+  {% include "inventario_app/navbar.html" %}
+
+  <div class="container">
+    <!-- Formulario para registrar piezas -->
+    <section>
+      <h1>Registrar Nueva Pieza</h1>
+      <form method="POST" enctype="multipart/form-data" action="{% url 'registrar_producto' %}">
+        {% csrf_token %}
+
+        <label for="nombre">Nombre de la Pieza</label>
+        <input type="text" name="nombre" id="nombre" required>
+
+        <label for="descripcion">Descripción</label>
+        <textarea name="descripcion" id="descripcion" rows="4" required></textarea>
+
+        <label for="etiquetas">Etiquetas</label>
+        <input type="text" name="etiquetas" id="etiquetas" required>
+
+        <label for="stock">Stock</label>
+        <input type="number" name="stock" id="stock" min="0" required>
+
+        <label for="fecha_vencimiento">Fecha de Vencimiento</label>
+        <input type="date" name="fecha_vencimiento" id="fecha_vencimiento">
+
+        <label for="imagen">Imagen</label>
+        <input type="file" name="imagen" id="imagen">
+
+        <button type="submit">Registrar Pieza</button>
+      </form>
+    </section>
+
+    <!-- Formulario para crear kits -->
+    {% comment %} <section>
+      <h2>Crear Kit de Piezas</h2>
+      <form method="POST" action="{% url 'crear_kit' %}">
+        {% csrf_token %}
+    
+        <label for="kit_nombre">Nombre del Kit</label>
+        <input type="text" name="kit_nombre" id="kit_nombre" required>
+    
+        <label for="kit_descripcion">Descripción del Kit</label>
+        <textarea name="kit_descripcion" id="kit_descripcion" rows="3"></textarea>
+    
+        <!-- Nuevo campo para cantidad de kits -->
+        <label for="cantidad_kit">Cantidad de Kits</label>
+        <input type="number" name="cantidad_kit" id="cantidad_kit" min="1" required>
+    
+        <div id="piezas-kit-container">
+          <div class="kit-pieza-row">
+            <select name="pieza_ids[]" required>
+              <option value="" disabled selected>Selecciona una pieza</option>
+              {% for pieza in piezas %}
+                <option value="{{ pieza.id }}">{{ pieza.nombre }}</option>
+              {% endfor %}
+            </select>
+            <input type="number" name="cantidades[]" min="1" placeholder="Cantidad" required>
+            <button type="button" class="remove-pieza-btn" onclick="this.parentElement.remove()">Eliminar</button>
+          </div>
+        </div>
+    
+        <button type="button" class="add-pieza-btn" onclick="agregarPieza()">+ Añadir otra pieza</button>
+    
+        <button type="submit">Crear Kit</button>
+      </form>
+    </section>
+    
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <!-- Formulario para registrar un Lote -->
+    <section>
+      <h2>Registrar Lote</h2>
+      <form method="POST" action="{% url 'registrar_lote' %}">
+        {% csrf_token %}
+        
+        <label for="producto">Producto</label>
+        <select name="producto" id="producto" required>
+          <option value="" disabled selected>Selecciona un Producto</option>
+          {% for producto in piezas %}
+            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="numero_lote">Número de Lote</label>
+        <input type="text" name="numero_lote" id="numero_lote" required>
+
+        <label for="cantidad">Cantidad</label>
+        <input type="number" name="cantidad" id="cantidad" min="1" required>
+
+        <label for="fecha_vencimiento">Fecha de Vencimiento</label>
+        <input type="date" name="fecha_vencimiento" id="fecha_vencimiento" required>
+
+        <label for="marca">Marca</label>
+        <input type="text" name="marca" id="marca" required>
+
+        <button type="submit">Registrar Lote</button>
+      </form>
+    </section>
+  </div> {% endcomment %}
+
+  <script>
+    function agregarPieza() {
+      const container = document.getElementById('piezas-kit-container');
+      const newRow = document.createElement('div');
+      newRow.classList.add('kit-pieza-row');
+      newRow.innerHTML = `
+        <select name="pieza_ids[]" required>
+          <option value="" disabled selected>Selecciona una pieza</option>
+          {% for pieza in piezas %}
+          <option value="{{ pieza.id }}">{{ pieza.nombre }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="cantidades[]" min="1" placeholder="Cantidad" required>
+        <button type="button" class="remove-pieza-btn" onclick="this.parentElement.remove()">Eliminar</button>
+      `;
+      container.appendChild(newRow);
+    }
+  </script>
+
+</body>
+</html>
