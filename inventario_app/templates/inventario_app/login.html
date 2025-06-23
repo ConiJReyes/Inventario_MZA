@@ -10,9 +10,7 @@
       font-family: 'Poppins', sans-serif;
       background-color: #cdd0c4;
       color: #222;
-
-      /* Fondo de pantalla */
-      background-image: url('https://image.jimcdn.com/app/cms/image/transf/dimension=940x10000:format=jpg/path/s311608c358b15ce1/image/i7ef0f32a213f38ca/version/1462023946/image.jpg'); /* Cambia la URL a tu imagen */
+      background-image: url('https://image.jimcdn.com/app/cms/image/transf/dimension=940x10000:format=jpg/path/s311608c358b15ce1/image/i7ef0f32a213f38ca/version/1462023946/image.jpg');
       background-size: cover; 
       background-position: center; 
       height: 100vh; 
@@ -50,7 +48,6 @@
       background-color: #eae3dd;
       border: none;
       font-weight: bold;
-      /* Eliminar el text-transform: uppercase; */
     }
 
     button {
@@ -58,6 +55,15 @@
       background-color: #eae3dd;
       border: none;
       font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .toggle-password {
+      margin-top: -15px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #333;
       cursor: pointer;
     }
 
@@ -74,12 +80,24 @@
     <form method="POST" novalidate>
       {% csrf_token %}
       <input type="text" name="correo" placeholder="USUARIO" required autofocus>
-      <input type="password" name="contrasena" placeholder="CONTRASEÑA" required>
+      <input type="password" id="contrasena" name="contrasena" placeholder="CONTRASEÑA" required>
+      <div class="toggle-password" onclick="mostrarContrasena()">👁 Mostrar/Ocultar contraseña</div>
       <button type="submit">INICIAR SESIÓN</button>
     </form>
     {% if error %}
       <p class="error-message">{{ error }}</p>
     {% endif %}
   </div>
+
+  <script>
+    function mostrarContrasena() {
+      const input = document.getElementById("contrasena");
+      if (input.type === "password") {
+        input.type = "text";
+      } else {
+        input.type = "password";
+      }
+    }
+  </script>
 </body>
 </html>
