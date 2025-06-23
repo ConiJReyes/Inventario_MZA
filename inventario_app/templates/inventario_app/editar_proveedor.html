@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Editar Proveedor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      gap: 40px;
+      font-weight: bold;
+      background-color: #3b4a3f;
+      color: #fff;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #fff;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: #f7931e;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #3b4a3f;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #3b4a3f;
+      margin-bottom: 20px;
+    }
+
+    .table-container {
+      width: 100%;
+      margin-bottom: 40px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #3b4a3f;
+      color: white;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .form-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    .form-container h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #3b4a3f;
+    }
+
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      background-color: #d76f0a;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #3e8e41;
+    }
+
+    @media screen and (max-width: 768px) {
+      .table-container, .form-container {
+        padding: 20px;
+      }
+      .table-container table {
+        font-size: 14px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+{% include "inventario_app/navbar.html" %}
+
+<div class="container">
+  <h1>Editar Proveedor: {{ proveedor.nombre }}</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+    <label for="nombre">Nombre del Proveedor</label>
+    <input type="text" name="nombre" id="nombre" value="{{ proveedor.nombre }}" required>
+
+    <label for="contacto">Persona de Contacto</label>
+    <input type="text" name="contacto" id="contacto" value="{{ proveedor.contacto }}" required>
+
+    <label for="telefono">Teléfono</label>
+    <input type="text" name="telefono" id="telefono" value="{{ proveedor.telefono }}" required>
+
+    <label for="email">Correo Electrónico</label>
+    <input type="email" name="email" id="email" value="{{ proveedor.email }}" required>
+
+    <button type="submit">Guardar Cambios</button>
+  </form>
+
+  <a href="{% url 'proveedores' %}" class="button">Cancelar</a>
+</div>
+
+</body>
+</html>
