@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Productos y Kits en Inventario</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    h1, h2 {
+      font-size: 36px;
+      color: #3b4a3f;
+      margin-bottom: 30px;
+    }
+
+    .productos-lista, .kits-lista {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .producto-card, .kit-card {
+      background-color: #eae3dd;
+      padding: 20px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .producto-card h3, .kit-card h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .producto-card img, .kit-card img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 15px;
+      border-radius: 5px;
+    }
+
+    .producto-card p, .kit-card p {
+      font-size: 18px;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .button {
+      padding: 10px 20px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #d76f0a;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .componentes-lista {
+      text-align: left;
+      margin-top: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+
+    .componentes-lista p {
+      margin: 4px 0;
+      font-size: 16px;
+    }
+    #search-input {
+    display: block;
+    margin: 0 auto 20px;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 60%;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+  }
+  #search-input:focus {
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  </style>
+</head>
+
+<body>
+  {% include "inventario_app/navbar.html" %}
+
+  <div class="container">
+    
+<div style="text-align: center; margin-bottom: 20px;">
+  <input
+      type="text"
+      id="search-input"
+      placeholder="Buscar Piezas"
+    >
+</div>
+
+<div class="productos-lista">
+  {% for producto in productos %}
+    <div
+      class="producto-card"
+      data-etiquetas="{{ producto.etiqueta|default_if_none:''|lower }}"
+    >
+      <h3>{{ producto.nombre }}</h3>
+
+      {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="max-width:150px; height:auto; object-fit:cover;">
+      {% else %}
+        <p>No hay imagen</p>
+      {% endif %}
+
+      <p><strong>Stock:</strong> {{ producto.stock }}</p>
+
+      {% if es_admin %}
+        <a href="{% url 'editar_producto_separado' producto.pk %}" class="button">Editar</a>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No hay productos disponibles.</p>
+  {% endfor %}
+</div>
+
+    {% comment %} <h2>Kits</h2>
+
+    <div class="kits-lista">
+      {% for kit in kits %}
+        <div class="kit-card">
+          <h3>{{ kit.nombre }}</h3>
+          <p><strong>Descripción:</strong> {{ kit.descripcion|default:"Sin descripción" }}</p>
+          <p><strong>Stock del Kit:</strong> {{ kit.stock }}</p>
+
+          <div class="componentes-lista">
+            <strong>Componentes:</strong>
+            {% if kit.kitcomponentes.all %}
+              {% for componente in kit.kitcomponentes.all %}
+                <p>- {{ componente.cantidad }} x {{ componente.producto.nombre }}</p>
+              {% endfor %}
+            {% else %}
+              <p>Sin componentes asignados.</p>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <p>No hay kits disponibles.</p>
+      {% endfor %}
+    </div>
+
+    <h2>Lotes</h2>
+
+    <div class="kits-lista">
+      {% for lote in lotes %}
+        <div class= "kit-card">
+          <h3>De {{ lote.producto }}</h3>
+          <p><strong>Numero Lote</strong> {{ lote.numero_lote }}</p>
+          <p><strong>Stock del Kit:</strong> {{ lote.cantidad }}</p>
+          <p><strong>Fecha Vencimiento:</strong> {{ lote.fecha_vencimiento }}</p>
+          <p><strong>Marca:</strong> {{ lote.marca }}</p>
+        </div>
+      {% empty %}
+        <p>No hay Lotes disponibles.</p>
+      {% endfor %}
+    </div>
+
+
+  </div>
+
+</body>
+
+</html> {% endcomment %}
+<script>
+  const input = document.getElementById('search-input');
+  input.addEventListener('input', () => {
+    const term = input.value.toLowerCase().trim();
+    document.querySelectorAll('.producto-card').forEach(card => {
+      const etiquetas = card.dataset.etiquetas; // ya en minúsculas
+      if (!term || etiquetas.includes(term)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>

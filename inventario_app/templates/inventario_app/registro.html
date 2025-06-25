@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Crear Cuenta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #cdd0c4;
+      color: #222;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px;
+      border: 1px solid #444;
+      background-color: transparent;
+      text-align: center;
+    }
+
+    .form-container h2 {
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #eae3dd;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+{% include "inventario_app/navbar.html" %}
+
+  <div class="form-container">
+    <h2>Crear cuenta</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="nombre" placeholder="NOMBRE" required>
+      <input type="text" name="correo" placeholder="CORREO" required>
+      <input type="password" name="contrasena" placeholder="CONTRASEÑA" required>
+      <input type="password" name="confirmar" placeholder="CONFIRMAR CONTRASEÑA" required>
+      <form method="POST">
+  {% csrf_token %}
+
+  <label for="rol">Selecciona un rol:</label>
+  <select name="rol" id="rol" required>
+    <option value="" disabled selected>-- Selecciona un rol --</option>
+    {% for group in grupos %}
+        <option value="{{ group.name }}">{{ group.name }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit">Crear cuenta</button>
+</form>
+    </form>
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+  </div>
+</body>
+</html>
