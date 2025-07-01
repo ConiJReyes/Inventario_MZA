@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detalles del Movimiento</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #3b4a3f;
+      margin-bottom: 30px;
+    }
+
+    .button {
+      padding: 12px 24px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background-color: #d76f0a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 40px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Detalles del Movimiento</h1>
+
+    <!-- Mostrar detalles del movimiento -->
+    <table>
+      <tr>
+        <th>Tipo de Producto</th>
+        <td>
+          {% if movimiento.tipo_elemento == 'pieza' %}
+            Pieza
+          {% elif movimiento.tipo_elemento == 'kit' %}
+            Kit
+          {% elif movimiento.tipo_elemento == 'lote' %}
+            Lote
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Producto</th>
+        <td>
+          {% if movimiento.tipo_elemento == 'pieza' %}
+            {{ movimiento.producto.nombre }}
+          {% elif movimiento.tipo_elemento == 'kit' %}
+            {{ movimiento.producto.nombre }} <!-- Aquí producto es un kit -->
+          {% elif movimiento.tipo_elemento == 'lote' %}
+            {{ movimiento.lote.numero_lote }} <!-- Aquí mostramos el número de lote -->
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Tipo de Movimiento</th>
+        <td>{{ movimiento.tipo_movimiento }}</td>
+      </tr>
+      <tr>
+        <th>Cantidad</th>
+        <td>{{ movimiento.cantidad }}</td>
+      </tr>
+      <tr>
+        <th>Fecha</th>
+        <td>{{ movimiento.fecha }}</td>
+      </tr>
+      <tr>
+        <th>Usuario</th>
+        <td>{{ movimiento.usuario.get_full_name }}</td>
+      </tr>
+      <tr>
+        <th>Motivo Movimiento</th>
+          <td>{% if  movimiento.motivo_movimiento == 'True'%}
+              <label></label>
+              {% else %}
+              {{ movimiento.motivo_movimiento}}
+              {% endif %}
+          </td>
+      </tr>
+    </table>
+
+    <br>
+    <a href="{% url 'movimientos' %}" class="button">Volver a Movimientos</a>
+  </div>
+
+</body>
+</html>

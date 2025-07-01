@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movimientos Registrados</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #f4f4f9; color: #333; }
+    .container { max-width: 1200px; margin: 40px auto; padding: 30px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 10px; }
+    h1, h2 { color: #3b4a3f; text-align: center; }
+    .form-container { max-width: 600px; margin: 40px auto; padding: 30px; background-color: #eae3dd; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    label { font-weight: 600; }
+    input, select { width: 100%; padding: 12px; margin: 8px 0 20px 0; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; }
+    button { padding: 12px 24px; background-color: #f7931e; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+    button:hover { background-color: #d76f0a; }
+    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+    th, td { padding: 14px; border: 1px solid #ddd; text-align: center; }
+    th { background-color: #3b4a3f; color: white; }
+    .filters { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 30px; }
+    .filters label { flex: 1 1 200px; font-weight: bold; }
+    .filters input, .filters select { width: 100%; padding: 10px; border-radius: 6px; }.toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #f44336; /* Rojo */
+      color: white;
+      padding: 16px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+
+{% include "inventario_app/navbar.html" %}
+
+<div class="container">
+<div id="toast" class="toast" style="display: {% if toast_alerta %}block{% else %}none{% endif %};">
+      <span>{{ toast_alerta }}</span>
+    </div>
+  <h1>Gestión de Movimientos</h1>
+
+  <div class="form-container">
+    <h2>Registrar Movimiento</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <label for="tipo_elemento">Tipo de Elemento</label>
+      <select name="tipo_elemento" id="tipo_elemento" required>
+        <option value="pieza">Pieza</option>
+        <option value="lote">Lote</option>
+        <option value="kit">Kit</option>
+      </select>
+
+      <label for="producto">Producto / Kit</label>
+      <select name="producto" id="producto" required>
+        <option value="" disabled selected>Selecciona</option>
+        {% for producto in productos %}
+          <option value="{{ producto.id }}" class="pieza-option">{{ producto.nombre }}</option>
+        {% endfor %}
+        {% for kit in kits %}
+          <option value="{{ kit.id }}" class="kit-option" style="display:none">{{ kit.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      <div id="lote-section" style="display:none;">
+        <label for="lote">Lote</label>
+        <select name="lote" id="lote">
+          <option value="" disabled selected>Selecciona un lote</option>
+          {% for lote in lotes %}
+            <option value="{{ lote.id }}">{{ lote.numero_lote }} - {{ lote.producto.nombre }} ({{ lote.fecha_vencimiento }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <label for="tipo_movimiento">Tipo de Movimiento</label>
+      <select name="tipo_movimiento" required>
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+      </select>
+
+      <label for="cantidad">Cantidad</label>
+      <input type="number" name="cantidad" required min="1">
+
+      <label for="motivo_movimiento">Motivo</label>
+      <input type="text" name="motivo_movimiento" required>
+
+      <button type="submit">Guardar Movimiento</button>
+    </form>
+  </div>
+
+  <h2>Movimientos Registrados</h2>
+
+  <!-- Filtros -->
+  <form method="get" class="filters">
+    <label>
+      Desde:
+      <input type="date" name="fecha_inicio" value="{{ fecha_inicio|default:'' }}">
+    </label>
+    <label>
+      Hasta:
+      <input type="date" name="fecha_fin" value="{{ fecha_fin|default:'' }}">
+    </label>
+    <label>
+      Producto:
+      <input type="text" name="producto_buscar" placeholder="Buscar..." value="{{ producto_buscar|default:'' }}">
+    </label>
+    <label>
+      Tipo:
+      <select name="tipo_movimiento_filter">
+        <option value="">Todos</option>
+        <option value="entrada" {% if tipo_movimiento_filter == "entrada" %}selected{% endif %}>Entrada</option>
+        <option value="salida" {% if tipo_movimiento_filter == "salida" %}selected{% endif %}>Salida</option>
+      </select>
+    </label>
+    <button type="submit">Filtrar</button>
+    <a href="{% url 'movimientos' %}" style="margin-left:10px;">Limpiar</a>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Producto/Lote</th>
+        <th>Movimiento</th>
+        <th>Cantidad</th>
+        <th>Fecha</th>
+        <th>Usuario</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for movimiento in movimientos %}
+        <tr>
+          <td>{{ movimiento.tipo_elemento|title }}</td>
+          <td>
+            {% if movimiento.tipo_elemento == 'lote' %}
+              {{ movimiento.lote.numero_lote }}
+            {% else %}
+              {{ movimiento.producto.nombre }}
+            {% endif %}
+          </td>
+          <td>{{ movimiento.tipo_movimiento }}</td>
+          <td>{{ movimiento.cantidad }}</td>
+          <td>{{ movimiento.fecha|date:"d/m/Y" }}</td>
+          <td>{{ movimiento.usuario.get_full_name }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">No hay movimientos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+<script>
+  const tipoElemento = document.getElementById('tipo_elemento');
+  const loteSection = document.getElementById('lote-section');
+  tipoElemento.addEventListener('change', () => {
+    loteSection.style.display = (tipoElemento.value === 'lote') ? 'block' : 'none';
+  });
+  tipoElemento.dispatchEvent(new Event('change'));
+</script>
+
+</body>
+</html>
