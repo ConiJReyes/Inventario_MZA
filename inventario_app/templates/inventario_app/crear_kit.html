@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crear Kit de Piezas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    h1 {
+      font-size: 36px;
+      color: #3b4a3f;
+      margin-bottom: 30px;
+    }
+    label {
+      font-weight: 600;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 20px;
+      background-color: #f7931e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    button:hover {
+      background-color: #d76f0a;
+    }
+    .pieza-row {
+      display: flex;
+      gap: 10px;
+    }
+    .pieza-row select, .pieza-row input {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  {% include "inventario_app/navbar.html" %}
+  <div class="container">
+    <h1>Crear Kit de Piezas</h1>
+    <form method="POST" action="{% url 'crear_kit' %}">
+      {% csrf_token %}
+      <label for="kit_nombre">Nombre del Kit</label>
+      <input type="text" name="kit_nombre" id="kit_nombre" required>
+
+      <label for="kit_descripcion">Descripción</label>
+      <textarea name="kit_descripcion" id="kit_descripcion" rows="3"></textarea>
+
+      <div id="piezas-container">
+        <div class="pieza-row">
+          <select name="pieza_ids[]" required>
+            <option value="" disabled selected>Selecciona una pieza</option>
+            {% for pieza in piezas %}
+            <option value="{{ pieza.id }}">{{ pieza.nombre }}</option>
+            {% endfor %}
+          </select>
+          <input type="number" name="cantidades[]" placeholder="Cantidad" min="1" required>
+          <button type="button" onclick="this.parentElement.remove()">Eliminar</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="agregarPieza()">+ Añadir otra pieza</button>
+      <br><br>
+      <button type="submit">Crear Kit</button>
+    </form>
+  </div>
+
+  <script>
+    function agregarPieza() {
+      const container = document.getElementById('piezas-container');
+      const row = document.createElement('div');
+      row.className = 'pieza-row';
+      row.innerHTML = `
+        <select name="pieza_ids[]" required>
+          <option value="" disabled selected>Selecciona una pieza</option>
+          {% for pieza in piezas %}
+            <option value="{{ pieza.id }}">{{ pieza.nombre }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="cantidades[]" placeholder="Cantidad" min="1" required>
+        <button type="button" onclick="this.parentElement.remove()">Eliminar</button>
+      `;
+      container.appendChild(row);
+    }
+  </script>
+</body>
+</html>

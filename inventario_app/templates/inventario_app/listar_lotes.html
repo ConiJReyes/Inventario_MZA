@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Listado de Lotes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #3b4a3f;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3b4a3f;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px;
+            background-color: #f9c74f;
+            color: #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "inventario_app/navbar.html" %}
+
+    <div class="container">
+        <h1>Listado de Lotes</h1>
+
+        {% if lotes_proximos %}
+        <div class="alert">⚠ Atención: Hay lotes próximos a vencer (menos de 15 días)</div>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Número de Lote</th>
+                    <th>Marca</th>
+                    <th>Cantidad</th>
+                    <th>Fecha de Vencimiento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                <tr {% if lote in lotes_proximos %} style="background-color: #fff3cd;" {% endif %}>
+                    <td>{{ lote.producto.nombre }}</td>
+                    <td>{{ lote.numero_lote }}</td>
+                    <td>{{ lote.marca }}</td>
+                    <td>{{ lote.cantidad }}</td>
+                    <td>{{ lote.fecha_vencimiento }}</td>
+
+                    <td>
+                        {% if lote.estado == 'bloqueado' and user.is_superuser %}
+                        <form method="post" action="{% url 'desbloquear_lote' lote.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                style="padding: 8px 16px; background-color: #27ae60; color: white; border-radius: 5px; border: none;">
+                                Desbloquear
+                            </button>
+                        </form>
+                        {% elif lote.estado == 'bloqueado' %}
+                        <span style="color: red; font-weight: bold;">Bloqueado</span>
+                        {% else %}
+                        <span style="color: green; font-weight: bold;">Activo</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</body>
+
+</html>

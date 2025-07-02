@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Listado de Kits</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #3b4a3f;
+            margin-bottom: 30px;
+        }
+
+        .kit-card {
+            background-color: #eae3dd;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .kit-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #f7931e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background-color: #d76f0a;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "inventario_app/navbar.html" %}
+
+    <div class="container">
+        <h1>Listado de Kits</h1>
+
+        <a href="{% url 'crear_kit' %}" class="button" style="margin-bottom: 20px;">Crear Nuevo Kit</a>
+
+        {% for kit in kits %}
+        <div class="kit-card">
+            <h2>{{ kit.nombre }}</h2>
+            <p><strong>Descripción:</strong> {{ kit.descripcion }}</p>
+            <p><strong>Stock disponible:</strong> {{ kit.stock }}</p>
+            <p><strong>Componentes:</strong></p>
+            <ul>
+                {% for componente in kit.kitcomponentes.all %}
+                <li>{{ componente.cantidad }} x {{ componente.producto.nombre }}</li>
+                {% endfor %}
+            </ul>
+
+            <form method="post" action="{% url 'desarmar_kit' kit.id %}"
+                onsubmit="return confirm('¿Estás seguro que deseas desarmar este kit?');">
+                {% csrf_token %}
+                <button type="submit" class="button" style="background-color: #c0392b;">Desarmar Kit</button>
+            </form>
+        </div>
+
+        {% empty %}
+        <p>No hay kits registrados.</p>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
